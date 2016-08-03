@@ -1,0 +1,80 @@
+$dir = File.expand_path(File.dirname(__FILE__) + "/../..")
+$dirname = File.basename(File.dirname(__FILE__))
+$thisdir = File.dirname(__FILE__)
+$time = Time.now.to_s
+
+require_relative("#{$dir}/sei-vagrant")
+
+$i = -1
+
+def general_config(config, seeds, name, v)
+  $i = $i + 1
+
+  config.vm.provider :vsphere do |vsphere|
+    vsphere.template_name = 'packer-templates/ubufuzz-cli-amd64-vmware' + (
+        case $i % 3 
+          when 0 then "-bruce-ssd" 
+          when 1 then "-gene-ssd" 
+          when 2 then "-cowbell-ssd" 
+        end)
+    vsphere.memory_mb = 1024
+  end
+
+  config.vm.synced_folder "#{$dir}/fuzz/ffmpeg-versions", "/data/ffmpeg-versions"
+  config.vm.synced_folder "#{$dir}/seeds/ffmpeg-cmin", "/home/fuzz/seeds"
+
+  config.vm.provision "shell", path: "#{$dir}/scripts/cmu-proxy.bash"
+
+  # Remove files > 1MB for AFL. (Also for BFF for fairness)
+  config.vm.provision "shell" do |s|
+    s.inline = "find #{seeds} -size +1M | xargs -r rm"
+  end
+
+  # Make sure that yasm is installed
+# Actually, I think I only need yasm for building from sources, no need to install
+#  config.vm.provision "shell" do |s|
+#    s.inline = "sudo apt-get install yasm -y"
+#  end
+
+  config.vm.synced_folder "#{$dir}/bff/dev_builds/BFF-linux/", "/home/fuzz/bff",
+    type: "rsync", rsync__args: ["--delete", "--archive"]
+
+end
+
+def experiment(name, seeds, c, bff_cmd, afl_cmd)
+  results = "/home/fuzz/results"
+  fuzz_time = 3600*24*7  # Run fuzzers for one week
+  
+  make_afl(c, afl_cmd, seeds, results, 
+       name: "#{name}-afl",
+       aflargs: "-t 2000+ -m 135",
+       secs: fuzz_time) do |c, name, i|
+    general_config(c, seeds, name, "afl")
+  end
+
+  make_bff(c, bff_cmd, seeds, results,
+       name: "#{name}-bff",
+       secs: fuzz_time) do |c, name, i|
+    general_config(c, seeds, name, "bff")
+  end
+
+end
+
+Vagrant.configure("2") do |c|
+  c.vm.box = 'sei'
+
+  seeds = "/home/fuzz/seeds"
+
+  versions = ["0.6"]
+#  versions = ["0.6", "2.4", "2.4.1", "2.4.2", "2.4.3", "2.4.4",
+#              "2.5", "2.5.2", "2.5.4", "2.8.5", "2.8.6", "3.0"]
+
+  options = "-i $SEEDFILE /home/fuzz/out.avi -y"
+
+  versions.each { |v| 
+    experiment("FFmpeg-#{v}", seeds, c,
+               "/data/ffmpeg-versions/gcc-noopt/FFmpeg-#{v}/bin/ffmpeg #{options}",
+               "/data/ffmpeg-versions/afl-noopt/FFmpeg-#{v}/bin/ffmpeg #{options}")
+  }
+
+end

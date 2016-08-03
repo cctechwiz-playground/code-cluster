@@ -1,0 +1,305 @@
+$dir = File.expand_path(File.dirname(__FILE__) + "/../..")
+$dirname = File.basename(File.dirname(__FILE__))
+$thisdir = File.dirname(__FILE__)
+$time = Time.now.to_s
+
+require_relative("#{$dir}/sei-vagrant")
+
+$i = -1
+
+# We only have one VM for imagemagick
+def general_config(config, seeds, name, v)
+
+  $i = $i + 1
+
+  config.vm.provider :vsphere do |vsphere|
+    vsphere.template_name = 'packer-templates/ubufuzz-cli-amd64-vmware' + (case $i % 3 when 0 then "-bruce-ssd" when 1 then "-gene-ssd" when 2 then "-cowbell-ssd" end)
+    vsphere.memory_mb = 1024
+  end
+
+  config.vm.synced_folder "#{$dir}/fuzz/#{name}-versions", "/data/#{name}-versions"
+
+  config.vm.synced_folder "#{$dir}/seeds/swf", "/home/fuzz/swfseeds"
+  config.vm.synced_folder "#{$dir}/seeds/jp2", "/home/fuzz/jp2seeds"
+  config.vm.synced_folder "#{$dir}/seeds/jbig2", "/home/fuzz/jbig2seeds"
+
+  config.vm.provision "shell", path: "#{$dir}/scripts/cmu-proxy.bash"
+  config.vm.provision "shell" do |s|
+    s.path = "#{$dir}/scripts/results-v1.bash"
+    s.args = [$dirname, $time, "#{name}-#{v}"]
+  end
+
+  # This is for openjpeg
+  config.vm.provision "shell" do |s|
+    s.inline = "ln -s /dev/null /home/fuzz/output.bmp"
+    s.privileged = false
+  end
+
+  # Remove files > 1MB for AFL.  But we do it for BFF too for fairness... should we?
+  config.vm.provision "shell" do |s|
+    s.inline = "find #{seeds} -size +1M | xargs -r rm"
+  end
+
+  # Upload new version of BFF to include the gdb fix for flasm
+  config.vm.synced_folder "#{$dir}/experiments/fuzz-versions/bff/dev_builds/BFF-linux/", "/home/fuzz/bff",
+  type: "rsync", rsync__args: ["--delete", "--archive"]
+
+  config.vm.provision "file", source: "#{$dir}/fuzz/notify.bash", destination: "notify.bash"
+end
+
+def experiment(progname, cmdline, aflcmdline, aflfilename, seeds, config)
+
+  results = "/home/fuzz/results"
+
+  make_bff(config,
+           cmdline,
+           seeds,
+           results,
+           name: "#{progname}-bff",
+           secs: 3600*24*7) do |c, name, i|
+    general_config(c, seeds, progname, "bff")
+  end
+
+  make_bff(config,
+           cmdline,
+           seeds,
+           results,
+           name: "#{progname}-bffrecycle",
+           secs: 3600*24*7) do |c, name, i|
+    general_config(c, seeds, progname, "bffrecycle")
+
+    # Recycle crashers
+    c.vm.provision "shell" do |s|
+      s.inline = "sed -e '/^recycle_crashers =/ s/.*/recycle_crashers = True/' " \
+      "-i ~/bff/conf.d/bff.cfg"
+      s.privileged = false
+    end
+  end
+
+  # XXX: AFL binaries
+  make_afl(config,
+           aflcmdline,
+           seeds,
+           results,
+           name: "#{progname}-afl",
+           aflargs: "-t 2000+ -f #{aflfilename}",
+           #cleantmp: true,
+           secs: 3600*24*7) do |c, name, i|
+    general_config(c, seeds, progname, "afl")
+  end
+
+  make_afl(config,
+           aflcmdline,
+           seeds,
+           results,
+           name: "#{progname}-afldumb",
+           aflargs: "-t 2000+ -f #{aflfilename}",
+           #cleantmp: true,
+           secs: 3600*24*7) do |c, name, i|
+    general_config(c, seeds, progname, "afldumb")
+    c.vm.provision "file", source: "afl-dumb", destination: "/home/fuzz/in"
+    c.vm.provision "shell", inline: "cd /home/fuzz/in/afl-dumb && make && sudo make install", privileged: false
+  end
+
+end
+
+Vagrant.configure("2") do |c|
+
+  c.vm.box = 'sei'
+  c.vm.provider :vsphere do |vsphere, override|
+    vsphere.template_name = 'packer-templates/ubufuzz-cli-i386-vmware'
+    vsphere.memory_mb = 1024
+    ## override.vm.provision "shell", path: "#{$dir}/scripts/cmu-proxy.bash"
+  end
+  c.vm.provider :aws do |aws, override|
+    aws.ami = "ami-7bce7510" # ubufuzz-cli-i386
+    ##override.vm.provision "shell", path: "#{$dir}/scripts/aws-tmp.bash"
+    ##override.vm.provision "shell", path: "#{$dir}/scripts/undo-proxy.bash"
+   end
+
+  ## c.vm.provision "shell", path: "#{$dir}/scripts/cmu-proxy.bash"
+
+  #c.vm.provision "shell", path: "#{$dir}/scripts/aws-tmp.bash"
+  #c.vm.provision "shell", path: "#{$dir}/scripts/undo-proxy.bash"
+
+  results = "/home/fuzz/results"
+  seeds = "/home/fuzz/bff/seedfiles/examples"
+  swfseeds = "/home/fuzz/swfseeds"
+  jp2seeds = "/home/fuzz/jp2seeds"
+  jbig2seeds = "/home/fuzz/jbig2seeds"
+
+  experiment("flasm",
+             "/data/flasm-versions/gcc-noopt/flasm -d $SEEDFILE",
+             "/data/flasm-versions/gcc-noopt-afl/flasm -d $SEEDFILE",
+             "input.swf",
+             swfseeds,
+             c)
+
+  experiment("jasper",
+             "/data/jasper-versions/gcc-noopt/bin/jasper -f $SEEDFILE -T bmp -F /dev/null",
+             "/data/jasper-versions/gcc-noopt-afl/bin/jasper -f $SEEDFILE -T bmp -F /dev/null",
+             "input.jp2",
+             jp2seeds,
+             c)
+
+  experiment("openjpeg",
+             "/data/openjpeg-versions/gcc-noopt/bin/j2k_to_image -i $SEEDFILE -o /home/fuzz/output.bmp",
+             "/data/openjpeg-versions/gcc-noopt-afl/bin/j2k_to_image -i $SEEDFILE -o /home/fuzz/output.bmp",
+             "input.jp2",
+             jp2seeds,
+             c)
+
+  experiment("jbig2dec",
+             "/data/jbig2dec-versions/gcc-noopt/bin/jbig2dec $SEEDFILE -o /dev/null",
+             "/data/jbig2dec-versions/gcc-noopt-afl/bin/jbig2dec $SEEDFILE -o /dev/null",
+             "input.jb2",
+             jbig2seeds,
+             c)
+
+  experiment("imagemagick",
+             "/data/imagemagick-versions/gcc-noopt/bin/convert $SEEDFILE /dev/null",
+             "/data/imagemagick-versions/gcc-noopt-afl/bin/convert $SEEDFILE /dev/null",
+             "input",
+             seeds,
+             c)
+  #
+  # i = 0
+  #
+  # Dir.glob("#{$dir}/experiments/compare-fuzzers/uniq-paper/seeds/**/*")
+  #   .select {|o| File.file?(o)}
+  #   .each do |seed|
+  #
+  #   i = i+1
+  #
+  #   seedbasename = File.basename(seed)
+  #   seedext = File.extname(seed)
+  #
+  #   if i.odd?
+  #     c.vm.provider :vsphere do |vsphere|
+  #       vsphere.template_name = 'packer-templates/ubufuzz-cli-i386-vmware-hans'
+  #     end
+  #   end
+  #
+  #   make_bff(c,
+  #            "/usr/local/bin/convert $SEEDFILE /dev/null",
+  #            seeds,
+  #            results,
+  #            name: "imagemagick-bff-#{seedbasename}",
+  #            secs: 3600*24*7) do |c, name, i|
+  #     c.vm.provider :vsphere do |vsphere, override|
+  #       override.vm.provision "shell" do |s|
+  #         s.path = "#{$dir}/scripts/results-v1.bash"
+  #         s.args = [$dirname, $time, name]
+  #       end
+  #     end
+  #     c.vm.provision "file", source: seed, destination: "/home/fuzz/seeds/#{seedbasename}"
+  #   end
+  #
+  #   make_bff(c,
+  #            "/usr/local/bin/convert $SEEDFILE /dev/null",
+  #            seeds,
+  #            results,
+  #            name: "imagemagick-bffrecycle-#{seedbasename}",
+  #            secs: 3600*24*7) do |c, name, i|
+  #     c.vm.provider :vsphere do |vsphere, override|
+  #       override.vm.provision "shell" do |s|
+  #         s.path = "#{$dir}/scripts/results-v1.bash"
+  #         s.args = [$dirname, $time, name]
+  #       end
+  #     end
+  #     c.vm.provision "file", source: seed, destination: "/home/fuzz/seeds/#{seedbasename}"
+  #
+  #     # Recycle crashers
+  #     c.vm.provision "shell" do |s|
+  #       s.inline = "sed -e '/^recycle_crashers =/ s/.*/recycle_crashers = True/' " \
+  #                  "-i ~/bff/conf.d/bff.cfg"
+  #       s.privileged = false
+  #     end
+  #   end
+  #
+  #   make_radamsa(c,
+  #                "/usr/local/bin/convert $SEEDFILE /dev/null",
+  #                seeds,
+  #                results,
+  #                name: "imagemagick-radamsa-#{seedbasename}",
+  #                cleantmp: true,
+  #                secs: 3600*24*7) do |c, name, i|
+  #     c.vm.provider :vsphere do |vsphere, override|
+  #       override.vm.provision "shell" do |s|
+  #         s.path = "#{$dir}/scripts/results-v1.bash"
+  #         s.args = [$dirname, $time, name]
+  #       end
+  #     end
+  #     c.vm.provision "file", source: seed, destination: "/home/fuzz/seeds/#{seedbasename}"
+  #   end
+  #
+  #   make_afl(c,
+  #            "/usr/local/afl/bin/convert #{seedbasename} /dev/null",
+  #            seeds,
+  #            results,
+  #            name: "imagemagick-afl-#{seedbasename}",
+  #     aflargs: "-f #{seedbasename}",
+  #     cleantmp: true,
+  #            secs: 3600*24*7) do |c, name, i|
+  #     c.vm.provider :vsphere do |vsphere, override|
+  #       override.vm.provision "shell" do |s|
+  #         s.path = "#{$dir}/scripts/results-v1.bash"
+  #         s.args = [$dirname, $time, name]
+  #       end
+  #     end
+  #     c.vm.provision "file", source: seed, destination: "/home/fuzz/seeds/#{seedbasename}"
+  #   end
+  #
+  #   make_afl(c,
+  #            "/usr/local/afl/bin/convert #{seedbasename} /dev/null",
+  #            seeds,
+  #            results,
+  #            name: "imagemagick-afledsdumb-#{seedbasename}",
+  #     aflargs: "-f #{seedbasename}",
+  #     cleantmp: true,
+  #            secs: 3600*24*7) do |c, name, i|
+  #     c.vm.provider :vsphere do |vsphere, override|
+  #       #override.vm.provision "shell" do |s|
+  #       #  s.path = "#{$dir}/scripts/results-v1.bash"
+  #       #  s.args = [$dirname, $time, name]
+  #       #end
+  #     end
+  #     c.vm.provision "file", source: "afl-dumb", destination: "/home/fuzz/in"
+  #     c.vm.provision "shell", inline: "cd /home/fuzz/in/afl-dumb && make && sudo make install", privileged: false
+  #     c.vm.provision "file", source: seed, destination: "/home/fuzz/seeds/#{seedbasename}"
+  #   end
+  #
+  #   make_afl(c,
+  #            "/usr/local/afl/bin/convert #{seedbasename} /dev/null",
+  #            seeds,
+  #            results,
+  #            name: "imagemagick-afldumb-#{seedbasename}",
+  #     aflargs: "-n -f #{seedbasename}",
+  #     cleantmp: true,
+  #            secs: 3600*24*7) do |c, name, i|
+  #     c.vm.provider :vsphere do |vsphere, override|
+  #       override.vm.provision "shell" do |s|
+  #         s.path = "#{$dir}/scripts/results-v1.bash"
+  #         s.args = [$dirname, $time, name]
+  #       end
+  #     end
+  #     c.vm.provision "shell", path: "#{$thisdir}/scripts/afl-maxcrashes.bash", privileged: false
+  #     c.vm.provision "file", source: seed, destination: "/home/fuzz/seeds/#{seedbasename}"
+  #   end
+  #
+  #   make_mayhem(c,
+  #               "/usr/local/bin/convert $SEEDFILE /dev/null",
+  #               seeds,
+  #               results,
+  #               name: "imagemagick-mayhem-#{seedbasename}",
+  #               secs: 3600*24*7) do |c, name, i|
+  #     c.vm.provider :vsphere do |vsphere, override|
+  #       override.vm.provision "shell" do |s|
+  #         s.path = "#{$dir}/scripts/results-v1.bash"
+  #         s.args = [$dirname, $time, name]
+  #       end
+  #     end
+  #     c.vm.provision "file", source: seed, destination: "/home/fuzz/seeds/#{seedbasename}"
+  #   end
+  # end
+end

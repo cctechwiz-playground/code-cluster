@@ -1,0 +1,1 @@
+core3 "working\EO\eo_Mission 1.txt" E:\FireMapperData\Macro raw\*ir1.aux E:\FireMapperData\Macro\*ir1.aux

@@ -1,0 +1,1 @@
+core2 E:\FireMapperData\Macro\photoID.dat working\ "E:\FireMapperData\Macro\event1_Mission 1.dat" E:\FireMapperData\Macro\fm.csv E:\FireMapperData\Macro\1aux.dat E:\FireMapperData\Macro\fmnew.csv E:\FireMapperData\Macro\photoID.csv E:\FireMapperData\Macro\event.csv

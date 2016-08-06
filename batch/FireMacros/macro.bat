@@ -1,0 +1,1 @@
+core fmdata\*.csv E:\FireMapperData\Macro raw\*ir1.aux E:\FireMapperData\Macro\*.csv E:\FireMapperData\Macro\*ir1.aux

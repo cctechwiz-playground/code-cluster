@@ -1,0 +1,23 @@
+set DD=%DATE:~0,2%
+set MM=%DATE:~3,2%
+set YY=%DATE:~8,2%
+set YYYY=%DATE:~6,4%
+set HH=%TIME:~0,2%
+set MN=%TIME:~3,2%
+
+You can now string them together in any format you want to create a dated folder name, eg,
+
+set FOLDER=%YYYY%-%MM%-%DD%
+
+echo %FOLDER% will now give you 2009-03-10 
+
+
+
+date /t >c:\lastbackup.txt          ;lastbackup.txt now has Mon 11/26/2007
+set /p mydate= <c:\lastbackup.txt   ;mydate now equals Mon 11/26/2007
+set mydate=%mydate:~4%              ;mydate now equals 11/26/2007
+
+
+
+
+http://www.experts-exchange.com/OS/Microsoft_Operating_Systems/MS_DOS/Q_23457726.html

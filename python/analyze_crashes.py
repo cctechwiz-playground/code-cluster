@@ -19,7 +19,12 @@ for dirname, dirnames, filenames in os.walk('.'):
           crashes.append("{} - {}".format(words[2], words[-1])
         break  # Skip the minimized.gdb file if .gdb is present
 
-os.remove('./crashing_functions.txt')
+# Clean up old file if any
+try:
+  os.remove('./crashing_functions.txt')
+except:
+  pass
+
 with open('./crashing_functions.txt', 'a') as out:
   for line in sorted(set(crashes)):
     out.write(line)

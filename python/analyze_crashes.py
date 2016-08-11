@@ -20,7 +20,6 @@ for dirname, dirnames, filenames in os.walk('.'):
         break  # Skip the minimized.gdb file if .gdb is present
 
 os.remove('./crashing_functions.txt')
-out = open('./crashing_functions.txt', 'a')
-for line in sorted(set(crashes)):
-  out.write(line)
-out.close()
+with open('./crashing_functions.txt', 'a') as out:
+  for line in sorted(set(crashes)):
+    out.write(line)

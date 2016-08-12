@@ -11,6 +11,8 @@ for dirname, dirnames, filenames in os.walk('.'):
   for fname in filenames:
     if ".py" in fname:
       continue
+    if ".txt" in fname"
+      continue
     if ".gdb" in fname"
       continue
     

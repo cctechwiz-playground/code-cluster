@@ -16,10 +16,12 @@ for dirname, dirnames, filenames in os.walk('.'):
     for f in os.listdir(subdirname):
       if "gdb" in f:
         f_path = os.path.join(dirname, subdirname, f)
-        lines = list(open(f_path))
+        try:
+          lines = list(open(f_path))
+        except:
+          print("Error reading {}".format(f_path))
         words = lines[2].split(" ")
-        if "raise" not in words:
-          crash_msgs.append("{} - {}".format(words[2], words[-1])
+        crash_msgs.append("{} - {}".format(words[2], words[-1])
         break  # Skip the minimized.gdb file if .gdb is present
 
 # Clean up old file if any

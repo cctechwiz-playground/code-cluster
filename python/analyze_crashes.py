@@ -6,8 +6,11 @@
 # Fucntions and lines where the crashes happend.
 
 import os
+from collections import namedtuple
 
-crashes = []
+Crash = namedtuple('Crash', ['msg', 'count'])
+crash_msgs = []
+
 for dirname, dirnames, filenames in os.walk('.'):
   for subdirname in dirnames:
     for f in os.listdir(subdirname):
@@ -16,7 +19,7 @@ for dirname, dirnames, filenames in os.walk('.'):
         lines = list(open(f_path))
         words = lines[2].split(" ")
         if "raise" not in words:
-          crashes.append("{} - {}".format(words[2], words[-1])
+          crash_msgs.append("{} - {}".format(words[2], words[-1])
         break  # Skip the minimized.gdb file if .gdb is present
 
 # Clean up old file if any
@@ -26,5 +29,7 @@ except:
   pass
 
 with open('./crashing_functions.txt', 'a') as out:
-  for line in sorted(set(crashes)):
-    out.write(line)
+  counted_crashes = [ Crash(msg, crash_msgs.count(msg))
+                      for msg in sorted(set(crash_msgs)) ]
+  for crash in counted_crashes:
+    out.write("{} - {}".format(crash.count, crash.msg))

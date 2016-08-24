@@ -56,6 +56,14 @@ for filename in *.tar.gz; do tar zxf $filename; done;
 ```
 
 
+**Rename all files/directories to lowercase:**
+> Bash
+
+```
+rename -f 'y/A-Z/a-z/' *
+```
+
+
 **View/modify devices allowed to wake the computer:**
 > Powershell
 

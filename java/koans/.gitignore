@@ -17,3 +17,5 @@ lib/file-compiler/bin
 *.ipr
 *.iws
 /.idea/*
+/koans/SerializeFile
+/koans/file.txt

@@ -36,6 +36,7 @@ class ToolTipBase:
         tw.wm_geometry("+%d+%d" % (x, y))
         self.showcontents()
 
+    # TODO: I think if I make this a tk.StingVar() instead of text it will update
     def showcontents(self, text="Your text here"):
         label = Label(self.tipwindow, text=text, justify=LEFT,
                         background="#a9a9a9", foreground="#000000",

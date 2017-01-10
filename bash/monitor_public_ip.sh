@@ -11,6 +11,9 @@
 #   libio-socket-ssl-perl
 #   libnet-ssleay-perl
 
+# Run with screen:
+#   screen -d -m -S ip /monitor_public_ip.sh
+
 USERNAME="cctechwiz@gmail.com"
 PASSWORD="meiqmuljxgvzgofn"
 RECV="cctechwiz@gmail.com, jam.maxwell@gmail.com"
@@ -28,7 +31,6 @@ for (( ; ; )); do
             -xu $USERNAME -xp $PASSWORD -t $RECV \
             -o tls=yes -u "Public IP address changed" \
             -m "Public IP: $PUBLIC_IP\nPort: 21337"
-        sleep 1d 
+        sleep 1d
     fi
 done
-

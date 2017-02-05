@@ -38,9 +38,10 @@ filetype plugin indent on
 " ~~~ GENERAL SETTINGS ~~~
 " ~~~~~~~~~~~~~~~~~~~~~~~~
 set backspace=indent,eol,start
-set listchars=eol:⚬,tab:▸▸,trail:␣,space:␣,nbsp:☠
+set listchars=eol:⚬,tab:▸▸,trail:␣ ",space:␣,nbsp:☠
 set list
 set ruler
+set wrap lbr
 set colorcolumn=79
 highlight colorcolumn ctermbg=darkgray
 set history=1000
@@ -66,7 +67,7 @@ set tabstop=4
 set shiftwidth=4
 set expandtab
 syntax on
-"set mouse=a	"Enable the mouse (click, scroll, select, etc)
+"set mouse=a    "Enable the mouse (click, scroll, select, etc)
 hi clear SignColumn
 
 "Enable ctrl+J/ctrl+K to move lines up and down
@@ -76,15 +77,28 @@ inoremap <C-d> <Esc>:m .+1<CR>==gi
 inoremap <C-u> <Esc>:m .-2<CR>==gi
 vnoremap <C-d> :m '>+1<CR>gv=gv
 vnoremap <C-u> :m '<-2<CR>gv=gv
+
+"Make it so I don't have to press two keys to navigate display lines
+nnoremap j gj
+nnoremap k gk
+vnoremap j gj
+vnoremap k gk
+nnoremap <Down> gj
+nnoremap <Up> gk
+vnoremap <Down> gj
+vnoremap <Up> gk
+inoremap <Down> <C-o>gj
+inoremap <Up> <C-o>gk
+
 " ~~~ Theme ~~~
 set background=dark
 set termguicolors " if you want to run vim in a terminal
 colorscheme jellybeans
 if &term =~ '256color'
-        " Disable Background Color Erase (BCE) so that color schemes
+    " Disable Background Color Erase (BCE) so that color schemes
     " work properly when Vim is used inside tmux and GNU screen.
     " From - superuser.com/questions/457911/\
-    "          in-vim-background-color-changes-on-scrolling
+    "    in-vim-background-color-changes-on-scrolling
     set t_ut=
 endif
 

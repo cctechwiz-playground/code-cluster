@@ -29,7 +29,7 @@ Plugin 'lervag/vimtex'
 " $ sudo apt-get install build-essential cmake python-dev python3-dev
 " $ cd ~/.vim/bundle/YouCompleteMe
 " $ ./install.py --all
-" Plugin 'valloric/youcompleteme' 
+" Plugin 'valloric/youcompleteme'
 
 call vundle#end()
 filetype plugin indent on
@@ -38,9 +38,20 @@ filetype plugin indent on
 " ~~~ GENERAL SETTINGS ~~~
 " ~~~~~~~~~~~~~~~~~~~~~~~~
 set backspace=indent,eol,start
+set listchars=eol:⚬,tab:▸▸,trail:␣,space:␣,nbsp:☠
+set list
 set ruler
+set colorcolumn=79
+highlight colorcolumn ctermbg=darkgray
+set history=1000
+set undolevels=1000
+set title
 set number
+set hidden
 set showcmd
+set showmatch
+set ignorecase
+set smartcase
 set incsearch
 set hlsearch
 set splitbelow
@@ -58,16 +69,23 @@ syntax on
 "set mouse=a	"Enable the mouse (click, scroll, select, etc)
 hi clear SignColumn
 
+"Enable ctrl+J/ctrl+K to move lines up and down
+nnoremap <C-d> :m .+1<CR>==
+nnoremap <C-u> :m .-2<CR>==
+inoremap <C-d> <Esc>:m .+1<CR>==gi
+inoremap <C-u> <Esc>:m .-2<CR>==gi
+vnoremap <C-d> :m '>+1<CR>gv=gv
+vnoremap <C-u> :m '<-2<CR>gv=gv
 " ~~~ Theme ~~~
 set background=dark
 set termguicolors " if you want to run vim in a terminal
 colorscheme jellybeans
 if &term =~ '256color'
-    	" Disable Background Color Erase (BCE) so that color schemes
-	" work properly when Vim is used inside tmux and GNU screen.
-	" From - superuser.com/questions/457911/\
-	"          in-vim-background-color-changes-on-scrolling
-	set t_ut=
+        " Disable Background Color Erase (BCE) so that color schemes
+    " work properly when Vim is used inside tmux and GNU screen.
+    " From - superuser.com/questions/457911/\
+    "          in-vim-background-color-changes-on-scrolling
+    set t_ut=
 endif
 
 " ~~~ Airline ~~~
@@ -82,8 +100,8 @@ let g:airline_theme='jellybeans'
 let g:syntastic_error_symbol='✘'
 let g:syntastic_warning_symbol='▲'
 augroup mySyntastic
-	au!
-	au FileType tex let b:syntastic_mode="passive"
+    au!
+    au FileType tex let b:syntastic_mode="passive"
 augroup END
 
 " ~~~ Gitgutter ~~~

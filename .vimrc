@@ -23,6 +23,7 @@ Plugin 'vim-syntastic/syntastic'
 Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'airblade/vim-gitgutter'
 Plugin 'tpope/vim-fugitive'
+Plugin 'lervag/vimtex'
 " Plugin 'christoomey/vim-tmux-navigator'
 " Extra install required. See - http://vimawesome.com/plugin/youcompleteme
 " $ sudo apt-get install build-essential cmake python-dev python3-dev

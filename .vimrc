@@ -71,12 +71,12 @@ syntax on
 hi clear SignColumn
 
 "Enable ctrl+J/ctrl+K to move lines up and down
-nnoremap <C-d> :m .+1<CR>==
-nnoremap <C-u> :m .-2<CR>==
-inoremap <C-d> <Esc>:m .+1<CR>==gi
-inoremap <C-u> <Esc>:m .-2<CR>==gi
-vnoremap <C-d> :m '>+1<CR>gv=gv
-vnoremap <C-u> :m '<-2<CR>gv=gv
+nnoremap <C-A-Down> :m .+1<CR>==
+nnoremap <C-A-Up> :m .-2<CR>==
+inoremap <C-A-Down> <Esc>:m .+1<CR>==gi
+inoremap <C-A-Up> <Esc>:m .-2<CR>==gi
+vnoremap <C-A-Down> :m '>+1<CR>gv=gv
+vnoremap <C-A-Up> :m '<-2<CR>gv=gv
 
 "Make it so I don't have to press two keys to navigate display lines
 nnoremap j gj
@@ -113,6 +113,13 @@ let g:airline_theme='jellybeans'
 " ~~~ Syntastic ~~~
 let g:syntastic_error_symbol='✘'
 let g:syntastic_warning_symbol='▲'
+let g:syntastic_always_populate_loc_list = 1
+" let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+let g:syntastic_aggregate_errors = 1
+let g:syntastic_auto_jump = 1
+let g:syntastic_stl_format = "[%E{Err: %fe #%e}%B{, }%W{Wrn: %fw #%w}]"
 augroup mySyntastic
     au!
     au FileType tex let b:syntastic_mode="passive"
@@ -120,3 +127,11 @@ augroup END
 
 " ~~~ Gitgutter ~~~
 let g:airline#extensions#hunks#non_zero_only=1
+
+" ~~~ NERDTree ~~~
+map <C-n> :NERDTreeToggle<CR>
+
+" ~~~ YouCompleteMe ~~~
+let g:ycm_confirm_extra_conf = 0
+let g:ycm_global_ycm_extra_conf = '~/.vim/.ycm_extra_conf.py'
+let g:ycm_autoclose_preview_window_after_completion = 1

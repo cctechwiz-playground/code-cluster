@@ -101,6 +101,7 @@ if &term =~ '256color'
     "    in-vim-background-color-changes-on-scrolling
     set t_ut=
 endif
+set fillchars=""
 
 " ~~~ Airline ~~~
 " For fonts: https://github.com/abertsch/Menlo-for-Powerline

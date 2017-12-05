@@ -1,5 +1,8 @@
 set nocompatible
 
+"Using vim in fish
+set shell=/bin/bash
+
 " ~~~ VUNDLE SETTINGS ~~~
 " ~~~~~~~~~~~~~~~~~~~~~~~
 " :PluginList       - lists configured plugins
@@ -7,7 +10,7 @@ set nocompatible
 " :PluginUpdate
 " :PluginSearch foo - searches for foo; append `!` to refresh local cache
 " :PluginClean      - confirms removal of unused plugins; 
-" 			append `!` to auto-approve removal
+"             append `!` to auto-approve removal
 " see :h vundle for more details or wiki for FAQ
 filetype off
 set rtp+=~/.vim/bundle/Vundle.vim
@@ -24,12 +27,15 @@ Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'airblade/vim-gitgutter'
 Plugin 'tpope/vim-fugitive'
 Plugin 'lervag/vimtex'
+Plugin 'christoomey/vim-tmux-navigator'
+"Plugin 'tpope/vim-surround'
+Plugin 'jiangmiao/auto-pairs'
 " Plugin 'christoomey/vim-tmux-navigator'
 " Extra install required. See - http://vimawesome.com/plugin/youcompleteme
 " $ sudo apt-get install build-essential cmake python-dev python3-dev
 " $ cd ~/.vim/bundle/YouCompleteMe
 " $ ./install.py --all
-" Plugin 'valloric/youcompleteme'
+Plugin 'valloric/youcompleteme'
 
 call vundle#end()
 filetype plugin indent on
@@ -49,6 +55,7 @@ set undolevels=1000
 set title
 set number
 set hidden
+set autochdir
 set showcmd
 set showmatch
 set ignorecase
@@ -58,10 +65,10 @@ set hlsearch
 set splitbelow
 set splitright
 " split navigations
-nnoremap <C-J> <C-W><C-J>
-nnoremap <C-K> <C-W><C-K>
-nnoremap <C-L> <C-W><C-L>
-nnoremap <C-H> <C-W><C-H>
+" nnoremap <C-J> <C-W><C-J>
+" nnoremap <C-K> <C-W><C-K>
+" nnoremap <C-L> <C-W><C-L>
+" nnoremap <C-H> <C-W><C-H>
 " tab spacing
 set tabstop=4
 set shiftwidth=4
@@ -70,7 +77,7 @@ syntax on
 "set mouse=a    "Enable the mouse (click, scroll, select, etc)
 hi clear SignColumn
 
-"Enable ctrl+J/ctrl+K to move lines up and down
+"Enable ctrl+u/ctrl+d to move lines up and down
 nnoremap <C-A-Down> :m .+1<CR>==
 nnoremap <C-A-Up> :m .-2<CR>==
 inoremap <C-A-Down> <Esc>:m .+1<CR>==gi
@@ -90,9 +97,13 @@ vnoremap <Up> gk
 inoremap <Down> <C-o>gj
 inoremap <Up> <C-o>gk
 
+"Other mapping
+:map ,<space> :nohl<CR>
+:map - dd
+
 " ~~~ Theme ~~~
 set background=dark
-set termguicolors " if you want to run vim in a terminal
+" set termguicolors " if you want to run vim in a terminal
 colorscheme jellybeans
 if &term =~ '256color'
     " Disable Background Color Erase (BCE) so that color schemes
@@ -101,7 +112,6 @@ if &term =~ '256color'
     "    in-vim-background-color-changes-on-scrolling
     set t_ut=
 endif
-set fillchars=""
 
 " ~~~ Airline ~~~
 " For fonts: https://github.com/abertsch/Menlo-for-Powerline
@@ -125,6 +135,16 @@ augroup mySyntastic
     au!
     au FileType tex let b:syntastic_mode="passive"
 augroup END
+
+function Py2()
+    let g:syntastic_python_python_exec = '/usr/local/bin/python2.7'
+    let g:syntastic_python_pylint_exe = '/usr/local/bin/python2.7 -m pylint'
+endfunction
+function Py3()
+    let g:syntastic_python_python_exec = '/usr/local/bin/python3.6'
+    let g:syntastic_python_pylint_exe = '/usr/local/bin/python3.6 -m pylint'
+endfunction
+call Py3() " Default to python2.
 
 " ~~~ Gitgutter ~~~
 let g:airline#extensions#hunks#non_zero_only=1

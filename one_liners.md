@@ -72,3 +72,13 @@ Powercfg -devicequery wake_armed
 Powercfg -devicedisablewake "devicename"
 Powercfg -deviceenablewake "devicename"
 ```
+
+**Search for text in files in current directory:**
+> Bash
+
+```
+grep --color -rni . -e "search text"
+
+#easy access: (add to ~/.profile)
+alias search="grep --color -rni . -e "
+```

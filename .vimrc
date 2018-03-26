@@ -27,6 +27,7 @@ Plugin 'scrooloose/nerdtree'
 Plugin 'reedes/vim-pencil'
 "" Others
 Plugin 'sjl/gundo.vim'
+Bundle 'elentok/plaintasks.vim'
 "" Look and Feel
 Plugin 'flazz/vim-colorschemes'
 Plugin 'vim-airline/vim-airline'

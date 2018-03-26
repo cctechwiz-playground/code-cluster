@@ -3,6 +3,9 @@
 
 ```bash
 grep -rn '.\{80,\}'
+
+#easy access: (add to ~/.bash_aliases)
+alias over80="grep -rn '.\{80,\}'"
 ```
 
 
@@ -79,6 +82,6 @@ Powercfg -deviceenablewake "devicename"
 ```bash
 grep --color -rni . -e "search text"
 
-#easy access: (add to ~/.profile)
+#easy access: (add to ~/.bash_aliases)
 alias search="grep --color -rni . -e "
 ```

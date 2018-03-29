@@ -1,0 +1,6 @@
+nbproject
+.vimrc
+*.swp
+*.~*
+tags
+cscope.out

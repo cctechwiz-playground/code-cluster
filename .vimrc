@@ -23,6 +23,8 @@ Plugin 'tmux-plugins/vim-tmux-focus-events'
 "" File navigation / manipulation
 Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'scrooloose/nerdtree'
+Plugin 'majutsushi/tagbar'
+Plugin 'simplyzhao/cscope_maps.vim'
 "" For Markdown or other prose writing
 Plugin 'reedes/vim-pencil'
 "" Others
@@ -41,7 +43,6 @@ Plugin 'ryanoasis/vim-devicons' "Load as the last Plugin (per instructions)
 "Plugin 'tpope/vim-dispatch'
 "Plugin 'gilsondev/searchtasks.vim'
 "Plugin 'wesQ3/vim-windowswap'
-"Plugin 'majutsushi/tagbar'
 
 "Plugin 'LanguageTool' " Requires additional setup to get working
 
@@ -72,6 +73,7 @@ filetype plugin indent on
 " ~~~ GENERAL SETTINGS ~~~
 " ~~~~~~~~~~~~~~~~~~~~~~~~
 :let mapleader=","
+set tags=./tags;$HOME "search from current folder up to home for tags file
 set encoding=UTF-8
 set backspace=indent,eol,start
 set listchars=eol:⚬,tab:▸▸,trail:␣ ",space:␣,nbsp:☠
@@ -146,7 +148,8 @@ inoremap <Up> <C-o>gk
 :map <leader><space> :nohl<CR>
   "Save the current vim session (window configuration, etc)
 :map <leader>s :mksession<CR>
-:map - dd
+  "Search for the word under the cursor
+nnoremap <leader>f :grep! "\b<C-R><C-W>\b"<CR>:cw<CR>
 
 " toggle between number and relativenumber
 function! ToggleNumber()
@@ -170,6 +173,19 @@ let g:gundo_right=1
 let g:ctrlp_match_window = 'bottom,order:ttb'
 let g:ctrlp_switch_buffer = 0
 let g:ctrlp_working_path_mode = 0
+nmap <leader>p :CtrlP<CR><C-\>w
+vmap <leader>p y:CtrlP<CR><C-\>c
+nmap <leader>o :CtrlPTag<CR><C-\>w
+vmap <leader>o y:CtrlPTag<CR><C-\>c
+
+" ~~~ Silver Searcher ~~~
+if executable('ag')
+  set grepprg=ag\ --nogroup\ --nocolor
+  let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
+  let g:ctrlp_use_caching = 0
+  command -nargs=+ -complete=file -bar Ag silent! grep! <args>|cwindow|redraw!
+  nnoremap \ :Ag<SPACE>
+endif
 
 " ~~~ NERDTree ~~~
 map <C-n> :NERDTreeToggle<CR>
@@ -181,6 +197,11 @@ autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 " Fix lagging from line highlighting
 let g:NERDTreeHighlightCursorline=0
+
+" ~~~ Tagbar ~~~
+:map <leader>t :TagbarToggle<CR>
+let g:tagbar_left = 0
+let g:tagbar_width = 40
 
 " ~~~ Markdown ~~~
 augroup markdown

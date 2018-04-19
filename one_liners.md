@@ -85,3 +85,10 @@ grep --color -rni . -e "search text"
 #easy access: (add to ~/.bash_aliases)
 alias search="grep --color -rni . -e "
 ```
+
+**Convert code file to pdf:**
+> Bash (with vim)
+
+```bash
+vim -c 'hardcopy > output.ps' -c quit <input_file> && ps2pdf output.ps
+```

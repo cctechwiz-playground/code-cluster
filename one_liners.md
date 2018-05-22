@@ -76,6 +76,7 @@ Powercfg -devicedisablewake "devicename"
 Powercfg -deviceenablewake "devicename"
 ```
 
+
 **Search for text in files in current directory:**
 > Bash
 
@@ -86,9 +87,18 @@ grep --color -rni . -e "search text"
 alias search="grep --color -rni . -e "
 ```
 
+
 **Convert code file to pdf:**
 > Bash (with vim)
 
 ```bash
 vim -c 'hardcopy > output.ps' -c quit <input_file> && ps2pdf output.ps
+```
+
+
+**Serve up pwd files via HTTP:**
+> Python
+
+```python
+python -m SimpleHTTPServer 8000
 ```

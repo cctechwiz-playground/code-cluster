@@ -102,3 +102,11 @@ vim -c 'hardcopy > output.ps' -c quit <input_file> && ps2pdf output.ps
 ```python
 python -m SimpleHTTPServer 8000
 ```
+
+
+**Replace text recursively in all files from pwd down:**
+> Bash
+
+```bash
+ag -l "search string" | xargs sed -i '' -e 's/from/to/g'
+```

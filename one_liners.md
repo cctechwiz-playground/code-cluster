@@ -110,3 +110,12 @@ python -m SimpleHTTPServer 8000
 ```bash
 ag -l "search string" | xargs sed -i '' -e 's/from/to/g'
 ```
+
+
+
+**Recursively update nested git repositories:**
+> Bash
+
+```bash
+find . -type d -name .git -exec sh -c "cd \"{}\"/../ && pwd && git pull" \;
+```

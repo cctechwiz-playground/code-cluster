@@ -119,3 +119,12 @@ ag -l "search string" | xargs sed -i '' -e 's/from/to/g'
 ```bash
 find . -type d -name .git -exec sh -c "cd \"{}\"/../ && pwd && git pull" \;
 ```
+
+
+
+**Print the current time to the terminal:**
+>Bash
+
+```bash
+while true; do tput clear; date +"%H : %M" | figlet -c -f big; sleep 1; done
+```

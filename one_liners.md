@@ -122,6 +122,16 @@ find . -type d -name .git -exec sh -c "cd \"{}\"/../ && pwd && git pull" \;
 
 
 
+**Clean up local branches that have been merged upstream:**
+> Bash
+
+```bash
+git branch --merged | grep -Ev '(^\*|master)' | xargs git branch -d && git remote prune origin
+```
+I'll often add this to .bash_aliases as '''gitclean'''
+
+
+
 **Print the current time to the terminal:**
 >Bash
 

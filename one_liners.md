@@ -138,3 +138,12 @@ I'll often add this to .bash_aliases as '''gitclean'''
 ```bash
 while true; do tput clear; date +"%H : %M" | figlet -c -f big; sleep 1; done
 ```
+
+
+
+**Demo all 256 terminal colors:**
+>Bash
+
+```bash
+for i in {0..255}; do printf "\x1b[38;5;${i}mcolour${i}\x1b[0m\n"; done
+```
